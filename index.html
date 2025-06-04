@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autoverse Car Rental</title>
+    <style>
+        .contact-info {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: #555;
+            margin-top: 10px;
+        }
+        .contact-info i {
+            color: #4CAF50;
+        }
+    </style>
+    <div class="contact-info">
+        <i class="fas fa-phone" style="transform: perspective(1px) translateZ(0);"></i> 01200000
+        <i class="fas fa-envelope" style="transform: perspective(1px) translateZ(0);"></i> carrental@autoverse.co.za
+    </div>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        header {
+            background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 4px;
+            background: linear-gradient(90deg, #13e374, #0f2027);
+            border-radius: 2px;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            flex-grow: 1;
+        }
+        .button {
+            padding: 15px 30px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+        }
+        .button:hover {
+            background-color: #373d38;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <link rel="stylesheet" href="style.css">
+    <header>
+        <h1 id="heading"> Autoverse Car Rental</h1>
+    </header>
+   
+    <div class="container">
+        <button class="button futuristic-button" onclick="window.location.href='view_cars.php'">View Cars</button>
+        <button class="button futuristic-button" onclick="window.location.href='register.php'">Register</button>
+        <button class="button futuristic-button" onclick="window.location.href='login.php'">Login</button>
+        <section class="topbanner">
+    </div>
+    <style>
+        .futuristic-button {
+            background: linear-gradient(90deg, #4a4a4a, #13e374);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0, 114, 255, 0.75);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .futuristic-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 114, 255, 0.85);
+        }
+        .futuristic-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 3px 10px rgba(0, 114, 255, 0.65);
+        }
+    </style>
+            <p>
+                <img src="images/topbanner.jpg" alt="Top Banner" style="width: 100%; height: auto; max-height: 850px; object-fit: cover;">
+                
+            </p>
+        </section>
+        <section class="features">
+            <h2 style="text-transform: uppercase; color: green;">Why Choose Autoverse?</h2>
+            <div class="features-container">
+                <div class="feature-item">
+                    <img src="images/affordable.png" alt="Affordable Prices">
+                    <h3>Affordable Prices</h3>
+                    <p>We offer competitive pricing to suit every budget.</p>
+                </div>
+                <div class="feature-item">
+                    <img src="images/variety.png" alt="Wide Variety">
+                    <h3>Wide Variety</h3>
+                    <p>Choose from a diverse fleet of vehicles for every need.</p>
+                </div>
+                <div class="feature-item">
+                    <img src="images/support.png" alt="24/7 Support">
+                    <h3>24/7 Support</h3>
+                    <p>Our team is here to assist you anytime, anywhere.</p>
+                </div>
+                <div class="feature-item">
+                    <img src="images/easy-booking.png" alt="Easy Booking">
+                    <h3>Easy Booking</h3>
+                    <p>Book your car in just a few clicks with our user-friendly platform.</p>
+                </div>
+            </div>
+        </section>
+        <section class="topbanner">
+            <p>
+                <img src="images/rentcars.webp" alt="Top Banner2" style="width: 100%; height: auto; max-height: 400px; object-fit: cover;">
+                
+            </p>
+        </section>
+        <style>
+            .features {
+                background-color: #ffffff;
+                padding: 40px 20px;
+                text-align: center;
+            }
+            .features-container {
+                display: flex;
+                justify-content: center;
+                gap: 30px;
+                flex-wrap: wrap;
+            }
+            .feature-item {
+                max-width: 250px;
+                text-align: center;
+            }
+            .feature-item img {
+                width: 100px;
+                height: auto;
+                margin-bottom: 15px;
+            }
+            .feature-item h3 {
+                font-size: 18px;
+                margin-bottom: 10px;
+            }
+            .feature-item p {
+                font-size: 14px;
+                color: #555;
+            }
+        </style>
+        <section>
+        
+        <style>
+            .floating-text-box {
+                position: relative;
+                background: rgba(255, 255, 255, 0.8);
+                border: 2px solid #4CAF50;
+                border-radius: 15px;
+                padding: 20px;
+                max-width: 600px;
+                margin: 20px auto;
+                box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+                animation: float 3s ease-in-out infinite;
+            }
+
+            @keyframes float {
+                0%, 100% {
+                    transform: translateY(0);
+                }
+                50% {
+                    transform: translateY(-10px);
+                }
+            }
+        </style>
+
+            <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;">
+                <div class="floating-text-box">
+                    <p style="font-family: 'Avenir Next', sans-serif; font-size: 14px; color: #b4b3b3;"></p>
+                        Discover the freedom of the open road with Autoverse! Whether you're planning a weekend getaway or a cross-country adventure, our reliable vehicles and exceptional service ensure a seamless experience.<br> <br>From compact cars to luxury SUVs, we have the perfect ride for every occasion. Let us help you create unforgettable memories on your journey.
+                    </br></br>
+                    </p>
+                </div>
+                <div class="floating-text-box">
+                    <p style="font-family: 'Avenir Next', sans-serif; font-size: 14px; color: rgb(180, 177, 177);"></p>
+                        At Autoverse, your satisfaction is our priority. Enjoy the convenience of online booking, flexible rental terms, and a dedicated support team ready to assist you 24/7. <br><br>Explore South Africa with confidence, knowing that you're backed by a trusted car rental partner. Start your adventure with Autoverse today!
+                </br></br>
+                    </p>
+                </div>
+            </div>
+                </div>
+            </div>
+                </div>
+            </div>
+        </div>
+        </section>
+    </div>
+    <section class="vehicle-gallery">
+        <h2 style="text-transform: uppercase; color: green;">Our Vehicle Gallery</h2>
+        <div class="gallery">
+            <div class="gallery-item">
+                <img src="images/sedan.png" alt="Sedan">
+                <div class="gallery-item-info">
+                    <h3>Sedan</h3>
+                    <p>Comfortable and stylish</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="images/suv.png" alt="SUV">
+                <div class="gallery-item-info">
+                    <h3>SUV</h3>
+                    <p>Spacious and powerful</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="images/truck.png" alt="Truck">
+                <div class="gallery-item-info">
+                    <h3>Truck</h3>
+                    <p>Durable and reliable</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="images/convertible.webp" alt="Convertible">
+                <div class="gallery-item-info">
+                    <h3>Convertible</h3>
+                    <p>Fun and sporty</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    &nbsp;
+    &nbsp;
+    &
+    <style>
+        .vehicle-gallery {
+            text-align: center;
+            margin: 40px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .vehicle-gallery h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 0 20px;
+        }
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .gallery-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        .gallery-item:hover img {
+            transform: scale(1.1);
+        }
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+        }
+        .gallery-item-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .gallery-item:hover .gallery-item-info {
+            opacity: 1;
+        }
+        .gallery-item-info h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        .gallery-item-info p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+        }
+        .vehicle-gallery {
+            margin-bottom: 10px; /* Add space between gallery and footer */
+        }
+    </style>
+    <div style="height: 200px;"></div>
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+&nbsp;
+    <footer>
+        <p>&copy; 2025 Autoverse Car Rental Platform. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
