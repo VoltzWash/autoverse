@@ -15,9 +15,19 @@ CREATE TABLE Users (
 	UserType ENUM('Admin', 'Owner', 'Customer') NOT NULL,
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
+CREATE TABLE OwnerRatings (
+    RatingID INT AUTO_INCREMENT PRIMARY KEY,
+    OwnerID INT NOT NULL,
+    CarID INT NOT NULL,
+    CustomerID INT NOT NULL,
+    Rating INT NOT NULL CHECK (Rating BETWEEN 1 AND 5),
+    Comment TEXT,
+    RatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (OwnerID) REFERENCES Users(UserID) ON DELETE CASCADE,
+    FOREIGN KEY (CarID) REFERENCES Cars(CarID) ON DELETE CASCADE,
+    FOREIGN KEY (CustomerID) REFERENCES Users(UserID) ON DELETE CASCADE
+);
 -- Creating the Cars table
--- To store the user's cars
 CREATE TABLE Cars (
     CarID INT AUTO_INCREMENT PRIMARY KEY,
     OwnerID INT NOT NULL,
@@ -28,6 +38,7 @@ CREATE TABLE Cars (
     Availability ENUM('Available', 'Booked', 'Unavailable') DEFAULT 'Available',
     DailyRate DECIMAL(10, 2) NOT NULL,
     Location VARCHAR(100),
+    ImagePath VARCHAR(255) DEFAULT 'uploads/cars/', -- Default image path for car images
     CreatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (OwnerID) REFERENCES Users(UserID) ON DELETE CASCADE
 );

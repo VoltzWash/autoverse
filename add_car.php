@@ -1,40 +1,35 @@
 <?php
 // Start session to get user data
 session_start();
-
-// Check if the user is logged in, if not, redirect to login page
+ 
+// Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
-
-// Get user data
-$user_id = $_SESSION['user_id']; // Logged-in user's ID
-
+ 
+$user_id = $_SESSION['user_id'];
+ 
 // Handle logout
 if (isset($_POST['logout'])) {
     session_destroy();
     header("Location: login.php");
     exit();
 }
-
+ 
 // Database connection
-$servername = "localhost"; // Change if your DB server is different
-$username = "root"; // Database username
-$password = ""; // Database password
-$dbname = "car_rental"; // Database name
-
-// Create connection
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "car_rental";
+ 
 $conn = new mysqli($servername, $username, $password, $dbname);
-
-// Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Get the form values and sanitize input
+ 
+// Handle form
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['make'])) {
     $make = mysqli_real_escape_string($conn, $_POST['make']);
     $model = mysqli_real_escape_string($conn, $_POST['model']);
     $year = (int) $_POST['year'];
@@ -42,67 +37,101 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $availability = mysqli_real_escape_string($conn, $_POST['availability']);
     $daily_rate = (float) $_POST['daily_rate'];
     $location = mysqli_real_escape_string($conn, $_POST['location']);
-
-    // Basic validation
+ 
+    // Validation
     if ($year < 1900 || $year > date("Y")) {
-        $error = "Invalid year. Please enter a valid car year.";
+        $error = "Invalid year.";
     } elseif ($daily_rate <= 0) {
-        $error = "Daily rate must be a positive number.";
+        $error = "Daily rate must be positive.";
     } elseif (empty($make) || empty($model) || empty($reg_number) || empty($location)) {
         $error = "All fields are required.";
     } else {
-        // Prepared statement to insert car details into the database
-        $stmt = $conn->prepare("INSERT INTO Cars (OwnerID, Make, Model, Year, RegistrationNumber, Availability, DailyRate, Location) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("isssssis", $user_id, $make, $model, $year, $reg_number, $availability, $daily_rate, $location);
-
-        // Execute and check for success
-        if ($stmt->execute()) {
-            // Redirect to the dashboard after adding the car
-            header("Location: dashboard.php");
-            exit();
-        } else {
-            $error = "Error: " . $conn->error;
+        $image_path = null;
+ 
+        // Upload image
+        if (isset($_FILES['car_image']) && $_FILES['car_image']['error'] == UPLOAD_ERR_OK) {
+            $target_dir = "uploads/cars/";
+            if (!is_dir($target_dir)) {
+                mkdir($target_dir, 0777, true);
+            }
+ 
+            $imageFileType = strtolower(pathinfo($_FILES["car_image"]["name"], PATHINFO_EXTENSION));
+            $allowed_types = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+ 
+            if (!in_array($imageFileType, $allowed_types)) {
+                $error = "Invalid file type.";
+            } else {
+                $unique_name = uniqid('car_', true) . '.' . $imageFileType;
+                $target_file = $target_dir . $unique_name;
+ 
+                if (move_uploaded_file($_FILES["car_image"]["tmp_name"], $target_file)) {
+                    $image_path = $target_file;
+                } else {
+                    $error = "Error uploading image.";
+                }
+            }
         }
-        $stmt->close();
+ 
+        if (!isset($error)) {
+            // Insert into Cars
+            $stmt = $conn->prepare("INSERT INTO Cars (OwnerID, Make, Model, Year, RegistrationNumber, Availability, DailyRate, Location, ImagePath) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("isssssiss", $user_id, $make, $model, $year, $reg_number, $availability, $daily_rate, $location, $image_path);
+ 
+            if ($stmt->execute()) {
+                $car_id = $stmt->insert_id;
+ 
+                // Insert into CarImages
+                if ($image_path) {
+                    $stmt_img = $conn->prepare("INSERT INTO CarImages (CarID, ImagePath) VALUES (?, ?)");
+                    $stmt_img->bind_param("is", $car_id, $image_path);
+                    $stmt_img->execute();
+                    $stmt_img->close();
+                }
+ 
+                header("Location: dashboard.php");
+                exit();
+            } else {
+                $error = "Database error: " . $stmt->error;
+            }
+ 
+            $stmt->close();
+        }
     }
 }
-
 ?>
-
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Car - Car Rental Platform</title>
-    <style>
+<meta charset="UTF-8">
+<title>Add Car</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
+            font-family: Arial;
+            background-color: #f4f4f4;
             margin: 0;
-            padding: 0;
         }
         header {
             background-color: #4CAF50;
             color: white;
-            padding: 15px;
+            padding: 20px;
             text-align: center;
             position: relative;
         }
         .header-buttons {
             position: absolute;
-            top: 50%;
             right: 20px;
-            transform: translateY(-50%);
+            top: 20px;
         }
         .header-buttons form {
             display: inline-block;
         }
         .header-buttons button {
-            padding: 10px 20px;
-            background-color: #fff;
+            background-color: white;
             color: #4CAF50;
             border: 1px solid #4CAF50;
+            padding: 10px 15px;
             border-radius: 5px;
             font-weight: bold;
             cursor: pointer;
@@ -113,111 +142,108 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         .container {
             max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            background: white;
+            margin: 40px auto;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        footer {
-            background-color: #333;
-            color: white;
-            text-align: center;
-            padding: 10px;
-            position: relative;
-            bottom: 0;
+        h2 {
+            margin-top: 0;
+        }
+        input, select {
             width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+        button[type="submit"] {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
         }
         .dashboard-links {
             margin-top: 20px;
         }
         .dashboard-links a {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
             text-decoration: none;
+            background-color: #4CAF50;
+            padding: 10px 15px;
+            color: white;
             border-radius: 5px;
             font-weight: bold;
-            margin-right: 10px;
         }
         .dashboard-links a:hover {
-            background-color: #45a049;
+            background-color: #3e8e41;
         }
-        input, select {
-            padding: 10px;
-            width: 100%;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
+        footer {
+            background: #333;
             color: white;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            cursor: pointer;
+            padding: 10px;
+            text-align: center;
+            margin-top: 40px;
         }
-        button:hover {
-            background-color: #45a049;
-        }
-        .error {
-            color: red;
-            font-size: 14px;
-        }
-    </style>
+</style>
 </head>
 <body>
-
+ 
 <header>
-    <h1>Add a New Car</h1>
-    <div class="header-buttons">
-        <form method="POST" action="">
-            <button type="submit" name="logout">Logout</button>
-        </form>
-    </div>
-</header>
-
-<div class="container">
-    <h2>Enter Car Details</h2>
-
-    <?php
-    if (isset($error)) {
-        echo "<p class='error'>$error</p>";
-    }
-    ?>
-
-    <form method="POST" action="">
-        <input type="text" name="make" placeholder="Car Make" required><br>
-        <input type="text" name="model" placeholder="Car Model" required><br>
-        <input type="number" name="year" placeholder="Car Year" required><br>
-        <input type="text" name="reg_number" placeholder="Registration Number" required><br>
-        <select name="availability" required>
-            <option value="Available">Available</option>
-            <option value="Booked">Booked</option>
-            <option value="Unavailable">Unavailable</option>
-        </select><br>
-        <input type="number" step="0.01" name="daily_rate" placeholder="Daily Rate (ZAR)" required><br>
-        <input type="text" name="location" placeholder="Car Location" required><br>
-
-        <button type="submit">Add Car</button>
-    </form>
-
-    <div class="dashboard-links">
-        <a href="dashboard.php">Back to Dashboard</a>
-    </div>
+<h1>Add a New Car</h1>
+<div class="header-buttons">
+<form method="POST" action="">
+<button type="submit" name="logout">Logout</button>
+</form>
 </div>
-
+</header>
+ 
+<div class="container">
+<h2>Car Details</h2>
+ 
+    <?php if (isset($error)) echo "<p class='error'>$error</p>"; ?>
+ 
+    <form method="POST" enctype="multipart/form-data">
+<input type="text" name="make" placeholder="Car Make" required>
+<input type="text" name="model" placeholder="Car Model" required>
+<input type="number" name="year" placeholder="Year" required>
+<input type="text" name="reg_number" placeholder="Registration Number" required>
+<select name="availability" required>
+<option value="">Select Availability</option>
+<option value="Available">Available</option>
+<option value="Booked">Booked</option>
+<option value="Unavailable">Unavailable</option>
+</select>
+<input type="number" step="0.01" name="daily_rate" placeholder="Daily Rate (ZAR)" required>
+<input type="text" name="location" placeholder="Location" required>
+<input type="file" name="car_image" accept="image/*" required>
+ 
+        <button type="submit">Add Car</button>
+</form>
+ 
+    <div class="dashboard-links">
+<a href="dashboard.php">Back to Dashboard</a>
+</div>
+</div>
+ 
 <footer>
-    <p>&copy; 2025 Car Rental Platform. All rights reserved.</p>
+&copy; 2025 Car Rental Platform
 </footer>
-
+ 
 </body>
 </html>
-
+ 
 <?php
-// Close the database connection
 $conn->close();
 ?>

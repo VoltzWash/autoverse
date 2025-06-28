@@ -5,28 +5,51 @@ $conn = new mysqli("localhost", "root", "", "car_rental");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-
+$isCustomer = isset($_SESSION['user_id']) && isset($_SESSION['name']);
 // Pagination settings
 $limit = 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
 
 // Fetch only available cars with owner details using prepared statement
-$sql = "SELECT Cars.CarID, Cars.Make, Cars.Model, Cars.Year, Cars.RegistrationNumber, Cars.DailyRate, Cars.Location, Users.Name AS OwnerName 
-        FROM Cars 
-        JOIN Users ON Cars.OwnerID = Users.UserID 
-        WHERE Cars.Availability = 'Available' 
-        LIMIT ? OFFSET ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $limit, $offset);
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+if ($search !== '') {
+    $search_param = "%{$search}%";
+    $sql = "SELECT Cars.CarID, Cars.Make, Cars.Model, Cars.Year, Cars.RegistrationNumber, Cars.DailyRate, Cars.Location,Cars.ImagePath, Users.Name AS OwnerName 
+            FROM Cars 
+            JOIN Users ON Cars.OwnerID = Users.UserID 
+            WHERE Cars.Availability = 'Available'
+              AND (Cars.Make LIKE ? OR Cars.Model LIKE ? OR Cars.Location LIKE ?)
+            LIMIT ? OFFSET ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssii", $search_param, $search_param, $search_param, $limit, $offset);
+
+    // For pagination count
+    $total_sql = "SELECT COUNT(*) AS total FROM Cars WHERE Availability = 'Available'
+                  AND (Make LIKE ? OR Model LIKE ? OR Location LIKE ?)";
+    $total_stmt = $conn->prepare($total_sql);
+    $total_stmt->bind_param("sss", $search_param, $search_param, $search_param);
+    $total_stmt->execute();
+    $total_result = $total_stmt->get_result();
+    $total_cars = $total_result->fetch_assoc()['total'];
+    $total_pages = ceil($total_cars / $limit);
+} else {
+    $sql = "SELECT Cars.CarID, Cars.Make, Cars.Model, Cars.Year, Cars.RegistrationNumber, Cars.DailyRate, Cars.Location,Cars.ImagePath, Users.Name AS OwnerName 
+            FROM Cars 
+            JOIN Users ON Cars.OwnerID = Users.UserID 
+            WHERE Cars.Availability = 'Available' 
+            LIMIT ? OFFSET ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $limit, $offset);
+
+    // For pagination count
+    $total_sql = "SELECT COUNT(*) AS total FROM Cars WHERE Availability = 'Available'";
+    $total_result = $conn->query($total_sql);
+    $total_cars = $total_result->fetch_assoc()['total'];
+    $total_pages = ceil($total_cars / $limit);
+}
 $stmt->execute();
 $cars_result = $stmt->get_result();
-
-// Get total number of cars for pagination
-$total_sql = "SELECT COUNT(*) AS total FROM Cars WHERE Availability = 'Available'";
-$total_result = $conn->query($total_sql);
-$total_cars = $total_result->fetch_assoc()['total'];
-$total_pages = ceil($total_cars / $limit);
 ?>
 
 <!DOCTYPE html>
@@ -64,19 +87,36 @@ $total_pages = ceil($total_cars / $limit);
     <a href="index.html" class="home-button">Home</a>
     </div>
 </header>
-
+<form method="GET" action="" style="text-align:center; margin: 20px 0;">
+    <input type="text" name="search" placeholder="Search by make, model, or location" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>" style="padding:8px; width:250px;">
+    <button type="submit" style="padding:8px 15px;">Search</button>
+</form>
 <div class="container">
     <?php if ($cars_result->num_rows > 0): ?>
         <?php while ($car = $cars_result->fetch_assoc()): ?>
             <div class="car-card">
-                <img src="images/X5M.jpg" alt="Car Image">
+                
+                <?php
+                // Display image
+                if (!empty($car['ImagePath']) && file_exists($car['ImagePath'])) {
+                    echo "<img src='" . htmlspecialchars($car['ImagePath']) . "' alt='Car Image'>";
+                } else {
+                    echo "<img src='images/caricon.png' alt='Car Image'>";
+                }
+                ?>
                 <h3><?php echo htmlspecialchars($car['Make'] . " " . $car['Model']); ?></h3>
                 <p><strong>Owner:</strong> <?php echo htmlspecialchars($car['OwnerName']); ?></p>
                 <p><strong>Year:</strong> <?php echo htmlspecialchars($car['Year']); ?></p>
                 <p><strong>Registration:</strong> <?php echo htmlspecialchars($car['RegistrationNumber']); ?></p>
                 <p><strong>Location:</strong> <?php echo htmlspecialchars($car['Location']); ?></p>
                 <p class="price">R<?php echo number_format($car['DailyRate'], 2); ?>/day</p>
-                <a href="book_car.php?car_id=<?php echo $car['CarID']; ?>" class="book-btn">Book</a>
+                <?php
+
+if ($isCustomer): ?>
+    <a href="book_car.php?Car_ID=<?php echo $car['CarID']; ?>" class="book-btn">Book</a>
+<?php else: ?>
+    <a href="#" class="book-btn" onclick="showLoginPopup(event)">Book</a>
+<?php endif; ?>
             </div>
         <?php endwhile; ?>
     <?php else: ?>
@@ -93,7 +133,22 @@ $total_pages = ceil($total_cars / $limit);
 <footer>
     <p>&copy; 2025 Car Rental Platform. All rights reserved.</p>
 </footer>
-
+<!-- Login Required Popup Modal -->
+<div id="loginPopup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:30px 40px; border-radius:8px; text-align:center; max-width:300px; margin:auto;">
+        <p style="font-size:18px; margin-bottom:20px;">Log in First to Book a Car</p>
+        <button onclick="closeLoginPopup()" style="padding:8px 20px; background:#4CAF50; color:#fff; border:none; border-radius:4px; cursor:pointer;">OK</button>
+    </div>
+</div>
+<script>
+function showLoginPopup(e) {
+    e.preventDefault();
+    document.getElementById('loginPopup').style.display = 'flex';
+}
+function closeLoginPopup() {
+    window.location.href = 'index.html';
+}
+</script>
 </body>
 </html>
 
@@ -101,3 +156,21 @@ $total_pages = ceil($total_cars / $limit);
 $stmt->close();
 $conn->close();
 ?>
+<!-- Helper PHP function to get car image path -->
+<?php
+function getCarImagePath($carId) {
+    $uploadDir = __DIR__ . '/uploads/cars/';
+    $webDir = 'uploads/cars/';
+    $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+    foreach ($allowedExtensions as $ext) {
+        $filePath = $uploadDir . $carId . '.' . $ext;
+        if (file_exists($filePath)) {
+            return $webDir . $carId . '.' . $ext;
+        }
+    }
+    return 'images/caricon.png';
+}
+?>
+<script>
+    // No JS needed for image display, handled in PHP above
+</script>

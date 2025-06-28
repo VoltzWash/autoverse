@@ -6,13 +6,23 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// CSRF token generation
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// CSRF token validation
+if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+    die("Invalid CSRF token.");
+}
+
 // Ensure booking ID and total price are available
 if (!isset($_POST['booking_id']) || !isset($_POST['total_price'])) {
     die("Booking details are missing.");
 }
 
-$booking_id = $_POST['booking_id'];  // Retrieve the booking ID from the POST request
-$total_price = $_POST['total_price']; // Retrieve the total price from the POST request
+$booking_id = $_POST['booking_id'];
+$total_price = $_POST['total_price'];
 
 // Fetch booking details
 $sql = "SELECT Bookings.*, Cars.Make, Cars.Model, Cars.RegistrationNumber, Cars.DailyRate, Users.Name AS OwnerName 
@@ -166,7 +176,8 @@ $total_price = $days * $booking['DailyRate'];
 
             <input type="hidden" name="booking_id" value="<?php echo $booking_id; ?>">
             <input type="hidden" name="total_price" value="<?php echo $total_price; ?>">
-            <button type="submit" class="btn">Submit Payment</button>
+            <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+        <button type="submit" class="btn">Submit Payment</button>
         </div>
     </form>
 
